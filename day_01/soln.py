@@ -25,4 +25,4 @@ def get_calibration(instr , pattern):
     
 if __name__ == '__main__': 
     print(f'P1 Soln is: {sum(get_calibration(instr, p1_nums) for instr in instrs)}')
-    print(f'P1 Soln is: {sum(get_calibration(instr, p2_nums) for instr in instrs)}')
+    print(f'P2 Soln is: {sum(get_calibration(instr, p2_nums) for instr in instrs)}')
