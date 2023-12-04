@@ -20,9 +20,6 @@ class Engine:
         init=False, default_factory=lambda: defaultdict(lambda: [])
     )
 
-    # flatten the above dict and only keep a list of special char locs
-    all_symbol_locs: List[tuple] = field(init=False, default_factory=list)
-
     def __post_init__(self) -> None:
         self.grid = [[col for col in row.strip()] for row in self.raw_grid.split("\n")]
 
@@ -37,10 +34,6 @@ class Engine:
             for s in symbols:
                 self.symbol_locs[s[0]].append((i, s.start(0)))
 
-        self.all_symbol_locs = list(
-            reduce(lambda x, y: x + y, self.symbol_locs.values(), [])
-        )
-
     def get_adjacent_parts(self, x: tuple) -> List[Part]:
         r, c = x[0], x[1]
         return list(
@@ -54,10 +47,15 @@ class Engine:
     def get_adjacent_symbols(self, part: Part) -> List[tuple]:
         c_1, c_2 = part.start[1], part.start[1] + len(str(part.num))
         r = part.start[0]
+
+        # flatten dict values to get list of all symbol locs, regardless of type
+        all_symbol_locs = list(
+            reduce(lambda x, y: x + y, self.symbol_locs.values(), [])
+        )
         return list(
             filter(
                 lambda x: abs(x[0] - r) <= 1 and c_1 - 1 <= x[1] <= c_2,
-                self.all_symbol_locs,
+                all_symbol_locs,
             )
         )
 
