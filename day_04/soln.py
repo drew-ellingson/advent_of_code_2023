@@ -23,7 +23,7 @@ class Card:
 class CardCollection(UserList):
     data: List[Card]
 
-    def score_cards_p2(self):
+    def score_cards_p2(self) -> int:
         card_mults = defaultdict(lambda: 1)
 
         for i, card in enumerate(self.data):
@@ -35,7 +35,7 @@ class CardCollection(UserList):
         return sum(card_mults.values())
 
 
-def parse_card(line):
+def parse_card(line) -> Card:
     line = re.sub(r" +", " ", line) # remove excess space for 1 digit nums
 
     id_part, cards_part = line.split(": ")
