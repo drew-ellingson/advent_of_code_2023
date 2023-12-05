@@ -36,8 +36,7 @@ class CardCollection(UserList):
 
 
 def parse_card(line):
-    line = re.sub(r" +", " ", line)
-    print(line)
+    line = re.sub(r" +", " ", line) # remove excess space for 1 digit nums
 
     id_part, cards_part = line.split(": ")
     id = int(id_part.split(" ")[-1])
