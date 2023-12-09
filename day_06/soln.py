@@ -8,13 +8,13 @@ class Race:
     time: int
     distance: int
 
-    def get_dist(self, hold_time):
+    def get_dist(self, hold_time) -> int:
         return max((self.time - hold_time) * hold_time, 0)
 
-    def count_winning_holds(self):
+    def count_winning_holds(self)-> int:
         return len([x for x in range(self.time) if self.get_dist(x) > self.distance])
 
-    def compute_winning_holds(self):
+    def compute_winning_holds(self)-> int:
         # ht - h^2 = d
         # h^2 - th + d = 0
         # zeroes at (t +-sqrt(t^2-4d))/2
