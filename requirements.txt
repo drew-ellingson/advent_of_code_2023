@@ -1,3 +1,6 @@
 # lint and format
 black
 flake8
+
+# day 10
+shapely
