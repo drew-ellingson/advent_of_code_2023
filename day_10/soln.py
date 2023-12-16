@@ -81,10 +81,12 @@ class Maze:
     def get_enclosed_area(self):
         """return number of points strictly enclosed by the cycle (not convex hull)"""
         poly = Polygon(self.cycle)
-        cands = [
-            (i, j) for i in range(len(self.maze)) for j in range(len(self.maze[0]))
+        interior = [
+            (i, j)
+            for i in range(len(self.maze))
+            for j in range(len(self.maze[0]))
+            if (i, j) not in self.cycle and poly.contains(Point((i, j)))
         ]
-        interior = [x for x in cands if x not in self.cycle and poly.contains(Point(x))]
         return len(interior)
 
 
