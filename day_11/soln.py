@@ -37,11 +37,11 @@ class SkyImage:
         for row in self.image:
             if not any(i.val == "#" for i in row):
                 for i in row:
-                    i.weight += exp_constant - 1
+                    i.weight *= exp_constant
         for col_idx in range(len(self.image[0])):
             if not any(row[col_idx].val == "#" for row in self.image):
                 for row in self.image:
-                    row[col_idx].weight += exp_constant - 1
+                    row[col_idx].weight *= exp_constant
 
     def reset_weights(self):
         for row in self.image:
