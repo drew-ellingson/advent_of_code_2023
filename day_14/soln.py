@@ -60,12 +60,10 @@ class RockField:
         return period_start, period
 
     def many_cycles(self, iters):
-        """assumption: iters > period"""
-
         period_start, period = self.find_period()
         period_iters = (iters - period_start) % period
 
-        for i in range(period_start + period_iters):
+        for i in range(min([iters, period_start + period_iters])):
             self.cycle()
 
     def compute_load(self):
