@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 from itertools import groupby
 
 
@@ -8,11 +8,11 @@ class SpringRow:
     springs: List[str]
     segments: List[int]
 
-    def get_partial_segments(self, resolved):
+    def get_partial_segments(self, resolved: List[str]) -> List[int]:
         gps = groupby(resolved)
         return [len(list(g[1])) for g in gps if g[0] == "#"]
 
-    def is_invalid(self, partially_resolved):
+    def is_invalid(self, partially_resolved: List[str]) -> bool:
         try:
             resolved = partially_resolved[: partially_resolved.index("?")]
         except ValueError:
@@ -41,7 +41,7 @@ class SpringRow:
         else:
             return False
 
-    def one_step(self, partially_resolved):
+    def one_step(self, partially_resolved: List[str]) -> List[List[str]]:
         res_idx = partially_resolved.index("?")
 
         damaged = [
@@ -53,7 +53,7 @@ class SpringRow:
 
         return [x for x in [damaged, working] if not self.is_invalid(x)]
 
-    def count_valid_confs(self):
+    def count_valid_confs(self) -> int:
         partial_springs = [self.springs]
         while any("?" in ps for ps in partial_springs):
             new_partial_springs = []
@@ -70,25 +70,25 @@ class SpringRow:
 
 
 class SpringField:
-    def __init__(self, raw_sf, p2=False):
+    def __init__(self, raw_sf: str, p2:bool=False):
         self.raw_sf = raw_sf
         self.p2 = p2
         self.spring_rows = self.parse_raw_input()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         msg = ""
         for a in self.spring_rows:
             msg = msg + str(a) + "\n"
         return msg
 
-    def parse_raw_input(self):
+    def parse_raw_input(self) -> List[SpringRow]:
         lines = self.raw_sf.split("\n")
         return [
             SpringRow(*[self.parse_line(line) for line in lines][i])
             for i in range(len(lines))
         ]
 
-    def parse_line(self, raw_line):
+    def parse_line(self, raw_line: str) -> Tuple[List[str], List[int]]:
         springs, sections = raw_line.split(" ")
         if self.p2:
             sections = (5 * (sections + ","))[:-1]
