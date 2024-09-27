@@ -1,81 +1,76 @@
-from dataclasses import dataclass, field
-from typing import Dict, List
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import List
+from functools import reduce
+
+
+def parse_range(raw_range: str) -> RangeMap:
+    return RangeMap(*map(int, raw_range.split(" ")))
+
+
+def parse_garden_map(raw_garden_map: str) -> GardenMap:
+    lines = raw_garden_map.split("\n")
+
+    src, tgt = lines[0].replace(" map:", "").split("-to-")
+    range_maps = [parse_range(x) for x in lines[1:]]
+
+    return GardenMap(src, tgt, range_maps)
+
+
+def parse_garden(raw_garden: str) -> Garden:
+    content_blocks = raw_garden.split("\n\n")
+
+    seeds = [int(x) for x in content_blocks[0].replace("seeds: ", "").split(" ")]
+    maps = [parse_garden_map(x) for x in content_blocks[1:]]
+
+    return Garden(seeds, maps)
+
 
 @dataclass
-class Interval:
-    src_start: int # flipping src and tgt from aoc statement
-    tgt_start: int 
-    rng: int 
+class RangeMap:
+    tgt_start: int
+    src_start: int
+    rng: int
+
 
 @dataclass
 class GardenMap:
-    raw_map: str = field(repr = False)
-    
-    src: str = field(init=False)
-    tgt: str = field(init=False)
-    intervals: List[Interval] = field(init=False)
+    src: str
+    tgt: str
+    range_maps: List[RangeMap]
 
-    def __post_init__(self) -> None:
-        self.src, self.tgt = self.__parse_src_tgt()
-        self.intervals = self.__parse_intervals()
-
-    def __parse_src_tgt(self) -> tuple:
-        src_tgt = self.raw_map.split('\n')[0].replace(' map:', '')
-        src_tgt = src_tgt.split('-')
-        return src_tgt[0], src_tgt[2]
-    
-    def __parse_intervals(self) -> dict:
-        lines = self.raw_map.split('\n')[1:] # ignore source and target heading
-        lines = [[int(val) for val in row.split(' ')] for row in lines]
-        return [Interval(l[1], l[0], l[2]) for l in lines]
-
-    def find_tgt_val(self, val) -> int:
-        # assuming non overlapping intervals
-        rel_int = [i for i in self.intervals if i.src_start <= val < i.src_start + i.rng]
-        if rel_int:
-            diff = val - rel_int[0].src_start
-            return rel_int[0].tgt_start + diff
+    def transform(self, value):
+        rel_rm = [
+            rm
+            for rm in self.range_maps
+            if rm.src_start <= value <= rm.src_start + rm.rng
+        ]
+        if rel_rm:
+            return rel_rm[0].tgt_start + (value - rel_rm[0].src_start)
         else:
-            return val
-        
+            return value
+
+
 @dataclass
 class Garden:
-    raw_garden: str = field(repr = False)
+    seeds: List[int]
+    maps: List[GardenMap]
 
-    p1_seeds: List[int] = field(init=False)
-    p2_seeds: List[int] = field(init=False)
+    # assumes maps are presented in order.
+    def transform(self, value):
+        steps = [m.transform for m in self.maps]
 
-    garden_maps: List[GardenMap] = field(init=False)
+        def compose(f, g):
+            return lambda x: g(f(x))
 
-    def __post_init__(self) -> None:
-        comps = self.raw_garden.split('\n\n')
-        self.p1_seeds = [int(x) for x in comps[0].replace('seeds: ', '').split(' ')]
+        return reduce(compose, steps)(value)
 
-        p2_seeds = []
-        for s in range(0, len(self.p1_seeds), 2):
-            new_range = list(range(self.p1_seeds[s], self.p1_seeds[s] + self.p1_seeds[s+1]))
-            p2_seeds.extend(new_range)
-        
-        self.p2_seeds = p2_seeds
 
-        self.garden_maps = [GardenMap(raw_map) for raw_map in comps[1:]] 
+if __name__ == "__main__":
+    with open("day_05/input2.txt") as input_file:
+        content = input_file.read()
+        garden = parse_garden(content)
 
-    def find_location(self, seed) -> int:
-        curr_src, curr_val = 'seed', seed
-        while curr_src != 'location':
-            curr_map = [m for m in self.garden_maps if m.src == curr_src][0]
-            curr_val = curr_map.find_tgt_val(curr_val)
-            curr_src = curr_map.tgt
-        return curr_val
+    min_loc = min(garden.transform(x) for x in garden.seeds)
 
-    def find_min_loc(self, part=1) -> int:
-        seeds = self.p1_seeds if part == 1 else self.p2_seeds
-        return min(self.find_location(s) for s in seeds)
-
-if __name__=="__main__":
-    with open('input2.txt') as f:
-        raw_garden = f.read()
-        garden = Garden(raw_garden)
-
-print(f'P1 Soln is: {garden.find_min_loc(part=1)}')
-print(f'P2 Soln is: {garden.find_min_loc(part=2)}')
+    print(f"P1 Soln is: {min_loc}")
